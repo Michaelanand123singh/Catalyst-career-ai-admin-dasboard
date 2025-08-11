@@ -3,17 +3,23 @@ import AdminLayout from './layouts/AdminLayout'
 import LoginPage from './pages/LoginPage'
 import UsersPage from './pages/UsersPage'
 import ActivityPage from './pages/ActivityPage'
+import RequireAuth from './components/RequireAuth'
 
 const router = createBrowserRouter([
+  { path: '/login', element: <LoginPage /> },
   {
     path: '/',
-    element: <AdminLayout />,
+    element: <RequireAuth />,
     children: [
-      { index: true, element: <UsersPage /> },
-      { path: 'activity', element: <ActivityPage /> },
+      {
+        element: <AdminLayout />,
+        children: [
+          { index: true, element: <UsersPage /> },
+          { path: 'activity', element: <ActivityPage /> },
+        ],
+      },
     ],
   },
-  { path: '/login', element: <LoginPage /> },
 ])
 
 export default function App() {

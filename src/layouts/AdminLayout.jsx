@@ -1,17 +1,9 @@
-import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
+import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { getApiBaseLabel, getAdminUser, adminLogout } from '../services/api'
 
 export default function AdminLayout() {
   const navigate = useNavigate()
-  const location = useLocation()
   const user = getAdminUser()
-
-  if (!user) {
-    const redirectTo = `/login?next=${encodeURIComponent(location.pathname + location.search)}`
-    navigate(redirectTo, { replace: true })
-    return null
-  }
-
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="border-b bg-white">
