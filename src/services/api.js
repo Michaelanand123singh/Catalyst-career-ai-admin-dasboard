@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use environment variable for cloud deployment, fallback to localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://catalyst-career-ai-backend.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export const httpClient = axios.create({
   baseURL: `${API_BASE_URL}/api`,
@@ -31,7 +31,7 @@ const safeRequest = async (promise) => {
 };
 
 const api = {
-  // Auth endpoints
+  // Auth endpoints - these are correct
   login: (email, password) =>
     safeRequest(
       httpClient.post('/auth/login', {
@@ -42,14 +42,14 @@ const api = {
 
   getCurrentUser: () => safeRequest(httpClient.get('/auth/me')),
 
-  // Admin endpoints
+  // Admin endpoints - these are correct
   getUsers: () => safeRequest(httpClient.get('/admin/users')),
   
   getActivity: (limit = 100) => safeRequest(httpClient.get(`/admin/activity?limit=${limit}`)),
   
   getUserSummary: (userId) => safeRequest(httpClient.get(`/admin/users/${userId}/summary`)),
 
-  // System endpoints
+  // System endpoints - these are correct
   getHealth: () => safeRequest(httpClient.get('/health')),
   
   getSystemStatus: () => safeRequest(httpClient.get('/system-status')),
