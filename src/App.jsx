@@ -1,41 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
-import api from './services/api';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+function AppContent() {
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    // Check if user is already authenticated
-    const token = localStorage.getItem('adminToken');
-    if (token) {
-      // Verify token is still valid
-      api.getCurrentUser().then(([data, err]) => {
-        if (data && !err) {
-          setIsAuthenticated(true);
-        } else {
-          // Token is invalid, clear it
-          localStorage.removeItem('adminToken');
-          localStorage.removeItem('adminUser');
-        }
-        setIsLoading(false);
-      });
-    } else {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const handleLoginSuccess = (data) => {
-    setIsAuthenticated(true);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
@@ -46,11 +17,19 @@ function App() {
     );
   }
 
-  if (!isAuthenticated) {
-    return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
+  if (!user) {
+    return <AdminLogin />;
   }
 
-  return <AdminDashboard onLogout={handleLogout} />;
+  return <AdminDashboard />;
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }
 
 export default App;

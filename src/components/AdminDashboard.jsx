@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Activity, BarChart3, Settings, LogOut, RefreshCw, User, Calendar, TrendingUp } from 'lucide-react';
+import { Users, Activity, BarChart3, Settings, LogOut, RefreshCw, User, Calendar, TrendingUp, FileText, Mail } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
+import BlogPage from '../pages/BlogPage';
+import ContactPage from '../pages/ContactPage';
 
-const AdminDashboard = ({ onLogout }) => {
+const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [users, setUsers] = useState([]);
   const [activity, setActivity] = useState([]);
@@ -43,10 +46,10 @@ const AdminDashboard = ({ onLogout }) => {
     }
   };
 
+  const { logout } = useAuth();
+
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    onLogout();
+    logout();
   };
 
   const formatDate = (dateString) => {
@@ -270,6 +273,8 @@ const AdminDashboard = ({ onLogout }) => {
               { id: 'overview', label: 'Overview', icon: BarChart3 },
               { id: 'users', label: 'Users', icon: Users },
               { id: 'activity', label: 'Activity', icon: Activity },
+              { id: 'blog', label: 'Blog', icon: FileText },
+              { id: 'contact', label: 'Contact', icon: Mail },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -300,6 +305,8 @@ const AdminDashboard = ({ onLogout }) => {
           {activeTab === 'overview' && renderOverview()}
           {activeTab === 'users' && renderUsers()}
           {activeTab === 'activity' && renderActivity()}
+          {activeTab === 'blog' && <BlogPage />}
+          {activeTab === 'contact' && <ContactPage />}
         </div>
       </main>
     </div>

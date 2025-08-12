@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Lock, Eye, EyeOff, User, Shield } from 'lucide-react';
-import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
-const AdminLogin = ({ onLoginSuccess }) => {
+const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -15,22 +17,10 @@ const AdminLogin = ({ onLoginSuccess }) => {
     setError('');
 
     try {
-      const [data, err] = await api.login(email, password);
+      const result = await login(email, password);
       
-      if (err) {
-        setError(err.message || 'Login failed');
-        return;
-      }
-
-      if (data?.token) {
-        // Store token
-        localStorage.setItem('adminToken', data.token);
-        localStorage.setItem('adminUser', JSON.stringify(data.user));
-        
-        // Call success callback
-        onLoginSuccess(data);
-      } else {
-        setError('Invalid response from server');
+      if (!result.success) {
+        setError(result.error || 'Login failed');
       }
     } catch (err) {
       setError('Login failed. Please try again.');
