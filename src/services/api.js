@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use environment variable for cloud deployment, fallback to localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://catalyst-career-ai-backend.onrender.com';
 
 export const httpClient = axios.create({
   baseURL: `${API_BASE_URL}/api`,
