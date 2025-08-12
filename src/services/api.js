@@ -1,62 +1,60 @@
-const API_BASE =
-  import.meta.env.VITE_API_BASE || 'https://catalyst-career-ai-backend.onrender.com/api'
-const ADMIN_TOKEN = import.meta.env.VITE_ADMIN_TOKEN || ''
-const ADMIN_JWT = () => localStorage.getItem('admin_jwt') || ''
+import axios from 'axios';
 
-export async function apiGet(path) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Admin-Token': ADMIN_TOKEN,
-      ...(ADMIN_JWT() ? { 'Authorization': `Bearer ${ADMIN_JWT()}` } : {}),
-    },
-    credentials: 'include',
-  })
-  if (!res.ok) {
-    let msg = 'Request failed'
-    try { msg = await res.text() } catch {}
-    throw new Error(msg)
+const API_BASE_URL = 'http://localhost:8000';
+
+export const httpClient = axios.create({
+  baseURL: `${API_BASE_URL}/api`,
+  timeout: 20000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Add auth token to requests if available
+httpClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('adminToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-  return res.json()
-}
+  return config;
+});
 
-export async function getUsers() {
-  return apiGet('/admin/users')
-}
-
-export async function getUserSummary(userId) {
-  return apiGet(`/admin/users/${userId}/summary`)
-}
-
-export function getApiBaseLabel() {
-  return API_BASE
-}
-
-export async function adminLogin(email, password) {
-  // Use the public auth/login endpoint to get JWT
-  const res = await fetch(`${API_BASE}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
-  })
-  if (!res.ok) {
-    let msg = 'Login failed'
-    try { msg = (await res.json()).detail || msg } catch {}
-    throw new Error(msg)
+const safeRequest = async (promise) => {
+  try {
+    const response = await promise;
+    return [response.data, null];
+  } catch (error) {
+    const message = error?.response?.data?.detail || error?.message || 'Request failed';
+    return [null, { message, status: error?.response?.status }];
   }
-  const data = await res.json()
-  localStorage.setItem('admin_jwt', data.token)
-  localStorage.setItem('admin_user', JSON.stringify(data.user))
-  return data
-}
+};
 
-export function adminLogout() {
-  localStorage.removeItem('admin_jwt')
-  localStorage.removeItem('admin_user')
-}
+const api = {
+  // Auth endpoints
+  login: (email, password) =>
+    safeRequest(
+      httpClient.post('/auth/login', {
+        email: email,
+        password: password,
+      })
+    ),
 
-export function getAdminUser() {
-  const raw = localStorage.getItem('admin_user')
-  try { return raw ? JSON.parse(raw) : null } catch { return null }
-}
+  getCurrentUser: () => safeRequest(httpClient.get('/auth/me')),
+
+  // Admin endpoints
+  getUsers: () => safeRequest(httpClient.get('/admin/users')),
+  
+  getActivity: (limit = 100) => safeRequest(httpClient.get(`/admin/activity?limit=${limit}`)),
+  
+  getUserSummary: (userId) => safeRequest(httpClient.get(`/admin/users/${userId}/summary`)),
+
+  // System endpoints
+  getHealth: () => safeRequest(httpClient.get('/health')),
+  
+  getSystemStatus: () => safeRequest(httpClient.get('/system-status')),
+  
+  getApiStatus: () => safeRequest(axios.get(`${API_BASE_URL}/api/status`)),
+};
+
+export default api;
 
