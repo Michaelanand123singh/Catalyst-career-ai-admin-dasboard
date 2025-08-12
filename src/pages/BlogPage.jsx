@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import ImageUpload from '../components/ImageUpload';
 
 const BlogPage = () => {
   const { token } = useAuth();
@@ -287,15 +288,9 @@ const BlogPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Featured Image URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.featured_image}
-                    onChange={(e) => setFormData({...formData, featured_image: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    placeholder="https://example.com/image.jpg"
+                  <ImageUpload
+                    currentImageUrl={formData.featured_image}
+                    onImageUpload={(url) => setFormData({...formData, featured_image: url})}
                   />
                 </div>
 

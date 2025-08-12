@@ -104,6 +104,17 @@ const api = {
   updateBlogPost: (postId, postData) => safeRequest(httpClient.put(`/admin/blog-posts/${postId}`, postData)),
   deleteBlogPost: (postId) => safeRequest(httpClient.delete(`/admin/blog-posts/${postId}`)),
   getBlogPost: (postId) => safeRequest(httpClient.get(`/admin/blog-posts/${postId}`)),
+  
+  // Image upload endpoint
+  uploadImage: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return safeRequest(
+      httpClient.post('/admin/upload-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+    );
+  },
 
   // Contact endpoints
   getContactSubmissions: () => safeRequest(httpClient.get('/admin/contact-submissions')),
