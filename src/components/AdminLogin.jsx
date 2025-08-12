@@ -3,8 +3,8 @@ import { Lock, Eye, EyeOff, User, Shield } from 'lucide-react';
 import api from '../services/api';
 
 const AdminLogin = ({ onLoginSuccess }) => {
-  const [email, setEmail] = useState('theanandsingh76@gmail.com');
-  const [password, setPassword] = useState('Password@#123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -122,15 +122,6 @@ const AdminLogin = ({ onLoginSuccess }) => {
               )}
             </button>
           </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-8 p-4 bg-slate-50 rounded-lg">
-            <h3 className="text-sm font-medium text-slate-700 mb-2">Demo Credentials</h3>
-            <div className="text-xs text-slate-600 space-y-1">
-              <p><strong>Email:</strong> theanandsingh76@gmail.com</p>
-              <p><strong>Password:</strong> Password@#123</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
