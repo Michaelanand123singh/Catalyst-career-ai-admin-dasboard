@@ -14,6 +14,7 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const BlogPage = () => {
   const { token } = useAuth();
@@ -39,18 +40,11 @@ const BlogPage = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch('/api/admin/blog-posts', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setPosts(data);
+      const [data, error] = await api.getBlogPosts();
+      if (error) {
+        console.error('Failed to fetch posts:', error);
       } else {
-        console.error('Failed to fetch posts');
+        setPosts(data.blog_posts || data || []);
       }
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -68,28 +62,21 @@ const BlogPage = () => {
     };
 
     try {
-      const url = editingPost 
-        ? `/api/admin/blog-posts/${editingPost.id}`
-        : '/api/admin/blog-posts';
-      
-      const method = editingPost ? 'PUT' : 'POST';
-      
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(postData)
-      });
+      let result;
+      if (editingPost) {
+        result = await api.updateBlogPost(editingPost._id, postData);
+      } else {
+        result = await api.createBlogPost(postData);
+      }
 
-      if (response.ok) {
+      const [data, error] = result;
+      if (error) {
+        console.error('Failed to save post:', error);
+      } else {
         setShowForm(false);
         setEditingPost(null);
         resetForm();
         fetchPosts();
-      } else {
-        console.error('Failed to save post');
       }
     } catch (error) {
       console.error('Error saving post:', error);
@@ -102,18 +89,11 @@ const BlogPage = () => {
     }
 
     try {
-      const response = await fetch(`/api/admin/blog-posts/${postId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        fetchPosts();
+      const [data, error] = await api.deleteBlogPost(postId);
+      if (error) {
+        console.error('Failed to delete post:', error);
       } else {
-        console.error('Failed to delete post');
+        fetchPosts();
       }
     } catch (error) {
       console.error('Error deleting post:', error);

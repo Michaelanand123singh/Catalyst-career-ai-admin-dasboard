@@ -55,6 +55,19 @@ const api = {
   getSystemStatus: () => safeRequest(httpClient.get('/system-status')),
   
   getApiStatus: () => safeRequest(axios.get(`${API_BASE_URL}/api/status`)),
+
+  // Blog endpoints
+  getBlogPosts: () => safeRequest(httpClient.get('/admin/blog-posts')),
+  createBlogPost: (postData) => safeRequest(httpClient.post('/admin/blog-posts', postData)),
+  updateBlogPost: (postId, postData) => safeRequest(httpClient.put(`/admin/blog-posts/${postId}`, postData)),
+  deleteBlogPost: (postId) => safeRequest(httpClient.delete(`/admin/blog-posts/${postId}`)),
+  getBlogPost: (postId) => safeRequest(httpClient.get(`/admin/blog-posts/${postId}`)),
+
+  // Contact endpoints
+  getContactSubmissions: () => safeRequest(httpClient.get('/admin/contact-submissions')),
+  updateContactStatus: (submissionId, status) => safeRequest(httpClient.put(`/admin/contact-submissions/${submissionId}/status`, { status })),
+  deleteContactSubmission: (submissionId) => safeRequest(httpClient.delete(`/admin/contact-submissions/${submissionId}`)),
+  getContactSubmission: (submissionId) => safeRequest(httpClient.get(`/admin/contact-submissions/${submissionId}`)),
 };
 
 export default api;

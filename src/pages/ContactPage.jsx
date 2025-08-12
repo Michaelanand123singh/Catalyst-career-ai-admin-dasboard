@@ -14,10 +14,9 @@ import {
   Reply,
   Clock
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
 const ContactPage = () => {
-  const { token } = useAuth();
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
@@ -30,18 +29,11 @@ const ContactPage = () => {
 
   const fetchSubmissions = async () => {
     try {
-      const response = await fetch('/api/admin/contact-submissions', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setSubmissions(data);
+      const [data, error] = await api.getContactSubmissions();
+      if (error) {
+        console.error('Failed to fetch submissions:', error);
       } else {
-        console.error('Failed to fetch submissions');
+        setSubmissions(data.contact_submissions || data || []);
       }
     } catch (error) {
       console.error('Error fetching submissions:', error);
@@ -52,19 +44,11 @@ const ContactPage = () => {
 
   const updateStatus = async (submissionId, status) => {
     try {
-      const response = await fetch(`/api/admin/contact-submissions/${submissionId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status })
-      });
-
-      if (response.ok) {
-        fetchSubmissions();
+      const [data, error] = await api.updateContactStatus(submissionId, status);
+      if (error) {
+        console.error('Failed to update status:', error);
       } else {
-        console.error('Failed to update status');
+        fetchSubmissions();
       }
     } catch (error) {
       console.error('Error updating status:', error);
@@ -77,18 +61,11 @@ const ContactPage = () => {
     }
 
     try {
-      const response = await fetch(`/api/admin/contact-submissions/${submissionId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        fetchSubmissions();
+      const [data, error] = await api.deleteContactSubmission(submissionId);
+      if (error) {
+        console.error('Failed to delete submission:', error);
       } else {
-        console.error('Failed to delete submission');
+        fetchSubmissions();
       }
     } catch (error) {
       console.error('Error deleting submission:', error);
