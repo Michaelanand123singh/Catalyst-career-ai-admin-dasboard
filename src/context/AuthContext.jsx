@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api';
 
 const AuthContext = createContext();
 
@@ -12,7 +13,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('admin_token'));
+  const [token, setToken] = useState(localStorage.getItem('adminToken'));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,19 +27,14 @@ export const AuthProvider = ({ children }) => {
 
   const verifyToken = async () => {
     try {
-      const response = await fetch('/api/admin/users', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        // Token is valid, set user info
-        setUser({ token }); // You might want to decode JWT or get user info from response
-      } else {
-        // Token is invalid, clear it
+      const [data, error] = await api.getCurrentUser();
+      
+      if (error) {
+        console.error('Token verification failed:', error);
         logout();
+      } else {
+        // Token is valid, set user info
+        setUser(data.user);
       }
     } catch (error) {
       console.error('Token verification failed:', error);
@@ -50,27 +46,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const { token: newToken } = data;
-        
-        setToken(newToken);
-        setUser({ token: newToken });
-        localStorage.setItem('admin_token', newToken);
-        
-        return { success: true };
-      } else {
-        const errorData = await response.json();
-        return { success: false, error: errorData.detail || 'Login failed' };
+      const [data, error] = await api.login(email, password);
+      
+      if (error) {
+        return { success: false, error: error.message || 'Login failed' };
       }
+      
+      const { token: newToken, user: userData } = data;
+      
+      setToken(newToken);
+      setUser(userData);
+      localStorage.setItem('adminToken', newToken);
+      
+      return { success: true };
     } catch (error) {
       console.error('Login error:', error);
       return { success: false, error: 'Network error' };
@@ -80,7 +68,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setToken(null);
     setUser(null);
-    localStorage.removeItem('admin_token');
+    localStorage.removeItem('adminToken');
   };
 
   const value = {

@@ -1,7 +1,35 @@
 import axios from 'axios';
 
-// Use environment variable for cloud deployment, fallback to cloud backend for production
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://catalyst-career-ai-backend.onrender.com';
+// Determine the correct API base URL based on environment
+const getApiBaseUrl = () => {
+  // Check for environment variable first
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // Check if we're in development mode
+  if (import.meta.env.MODE === 'development') {
+    return 'http://localhost:8000';
+  }
+  
+  // Check if we're running on the admin subdomain
+  if (window.location.hostname === 'admin.catalystcareers.in') {
+    return 'https://catalyst-career-ai-backend.onrender.com';
+  }
+  
+  // Production fallback
+  return 'https://catalyst-career-ai-backend.onrender.com';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Debug logging to help identify the issue
+console.log('🔧 API Configuration Debug:');
+console.log('Environment:', import.meta.env.MODE);
+console.log('Hostname:', window.location.hostname);
+console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('Final API_BASE_URL:', API_BASE_URL);
+console.log('Full API URL:', `${API_BASE_URL}/api`);
 
 export const httpClient = axios.create({
   baseURL: `${API_BASE_URL}/api`,
@@ -17,8 +45,22 @@ httpClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Debug logging for requests
+  console.log('🚀 API Request:', config.method?.toUpperCase(), config.url);
   return config;
 });
+
+// Add response interceptor for debugging
+httpClient.interceptors.response.use(
+  (response) => {
+    console.log('✅ API Response:', response.status, response.config.url);
+    return response;
+  },
+  (error) => {
+    console.error('❌ API Error:', error.response?.status, error.config?.url, error.message);
+    return Promise.reject(error);
+  }
+);
 
 const safeRequest = async (promise) => {
   try {
