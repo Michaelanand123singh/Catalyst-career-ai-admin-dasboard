@@ -1,34 +1,25 @@
-# Stage 1: Build the Vite app
-FROM node:20 AS build
-
-# Set working directory
+# Step 1: Build the React app
+FROM node:18 AS build
 WORKDIR /app
-
-# Copy package.json and lock file
 COPY package*.json ./
-
-# Install dependencies
-RUN npm install --legacy-peer-deps
-
-# Copy project files
+RUN npm install
 COPY . .
-
-# Build the app
 RUN npm run build
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
+# Step 2: Serve the build using Nginx
+FROM nginx:stable-alpine
 
-# Copy built assets from build stage
-COPY --from=build /app/dist /usr/share/nginx/html
+# needed for envsubst
+RUN apk add --no-cache gettext
 
-# Remove default Nginx config
-RUN rm /etc/nginx/conf.d/default.conf
+# copy build output
+COPY --from=build /app/build /usr/share/nginx/html
 
-# Add custom Nginx config
-COPY nginx.conf /etc/nginx/conf.d
+# copy the nginx template that uses ${PORT}
+COPY default.conf.template /etc/nginx/conf.d/default.conf.template
 
-# Expose port 8080 (Cloud Run expects this)
+# EXPOSE is informational; Cloud Run will set PORT at runtime
 EXPOSE 8080
 
-CMD ["nginx", "-g", "daemon off;"]
+# render the template with the runtime PORT and start nginx
+CMD ["sh", "-c", "envsubst '$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
