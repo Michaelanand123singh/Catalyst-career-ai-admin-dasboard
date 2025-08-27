@@ -2,23 +2,18 @@ import axios from 'axios';
 
 // Determine the correct API base URL based on environment
 const getApiBaseUrl = () => {
-  // Check for environment variable first
+  // Prefer environment variable
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
   }
-  
-  // Check if we're in development mode
+
+  // Development mode fallback
   if (import.meta.env.MODE === 'development') {
     return 'http://localhost:8000';
   }
-  
-  // Check if we're running on the admin subdomain
-  if (window.location.hostname === 'admin.catalystcareers.in') {
-    return 'https://catalyst-career-ai-backend.onrender.com';
-  }
-  
-  // Production fallback
-  return 'https://catalyst-career-ai-backend.onrender.com';
+
+  // If env var is missing in production, throw an error instead of silently falling back
+  throw new Error('❌ Missing VITE_API_BASE_URL. Please set it in your .env.production');
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -45,7 +40,6 @@ httpClient.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  // Debug logging for requests
   console.log('🚀 API Request:', config.method?.toUpperCase(), config.url);
   return config;
 });
@@ -73,29 +67,19 @@ const safeRequest = async (promise) => {
 };
 
 const api = {
-  // Auth endpoints - these are correct
+  // Auth endpoints
   login: (email, password) =>
-    safeRequest(
-      httpClient.post('/auth/login', {
-        email: email,
-        password: password,
-      })
-    ),
-
+    safeRequest(httpClient.post('/auth/login', { email, password })),
   getCurrentUser: () => safeRequest(httpClient.get('/auth/me')),
 
-  // Admin endpoints - these are correct
+  // Admin endpoints
   getUsers: () => safeRequest(httpClient.get('/admin/users')),
-  
   getActivity: (limit = 100) => safeRequest(httpClient.get(`/admin/activity?limit=${limit}`)),
-  
   getUserSummary: (userId) => safeRequest(httpClient.get(`/admin/users/${userId}/summary`)),
 
-  // System endpoints - these are correct
+  // System endpoints
   getHealth: () => safeRequest(httpClient.get('/health')),
-  
   getSystemStatus: () => safeRequest(httpClient.get('/system-status')),
-  
   getApiStatus: () => safeRequest(axios.get(`${API_BASE_URL}/api/status`)),
 
   // Blog endpoints
@@ -104,7 +88,7 @@ const api = {
   updateBlogPost: (postId, postData) => safeRequest(httpClient.put(`/admin/blog-posts/${postId}`, postData)),
   deleteBlogPost: (postId) => safeRequest(httpClient.delete(`/admin/blog-posts/${postId}`)),
   getBlogPost: (postId) => safeRequest(httpClient.get(`/admin/blog-posts/${postId}`)),
-  
+
   // Image upload endpoint
   uploadImage: (file) => {
     const formData = new FormData();
@@ -118,10 +102,10 @@ const api = {
 
   // Contact endpoints
   getContactSubmissions: () => safeRequest(httpClient.get('/admin/contact-submissions')),
-  updateContactStatus: (submissionId, status) => safeRequest(httpClient.put(`/admin/contact-submissions/${submissionId}/status`, { status })),
+  updateContactStatus: (submissionId, status) =>
+    safeRequest(httpClient.put(`/admin/contact-submissions/${submissionId}/status`, { status })),
   deleteContactSubmission: (submissionId) => safeRequest(httpClient.delete(`/admin/contact-submissions/${submissionId}`)),
   getContactSubmission: (submissionId) => safeRequest(httpClient.get(`/admin/contact-submissions/${submissionId}`)),
 };
 
 export default api;
-
