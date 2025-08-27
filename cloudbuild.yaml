@@ -1,0 +1,11 @@
+steps:
+  # Step 1: Build Docker image from Dockerfile
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/catalyst-admin-dashboard', '.']
+
+  # Step 2: Push the image to Container Registry / Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/catalyst-admin-dashboard']
+
+images:
+  - 'gcr.io/$PROJECT_ID/catalyst-admin-dashboard'
