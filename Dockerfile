@@ -1,25 +1,25 @@
-# Step 1: Build the React app
+# Step 1: Build Vite app
 FROM node:18 AS build
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm install
+
 COPY . .
+
+# Use production env file
+ENV NODE_ENV=production
 RUN npm run build
 
-# Step 2: Serve the build using Nginx
+# Step 2: Serve with Nginx
 FROM nginx:stable-alpine
 
-# needed for envsubst
+# Add gettext for envsubst (Cloud Run $PORT handling)
 RUN apk add --no-cache gettext
 
-# copy build output
-COPY --from=build /app/build /usr/share/nginx/html
-
-# copy the nginx template that uses ${PORT}
+COPY --from=build /app/dist /usr/share/nginx/html
 COPY default.conf.template /etc/nginx/conf.d/default.conf.template
 
-# EXPOSE is informational; Cloud Run will set PORT at runtime
 EXPOSE 8080
 
-# render the template with the runtime PORT and start nginx
-CMD ["sh", "-c", "envsubst '$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "envsubst < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
