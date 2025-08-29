@@ -22,3 +22,4 @@ EXPOSE 8080
 
 # Replace $PORT at runtime and start Nginx
 CMD ["sh", "-c", "envsubst '$PORT' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"]
+
