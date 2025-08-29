@@ -9,7 +9,7 @@ const getApiBaseUrl = () => {
 
   // Development mode fallback
   if (import.meta.env.MODE === 'development') {
-    return 'http://localhost:8000';
+    return 'http://localhost:5173';
   }
 
   // If env var is missing in production, throw an error instead of silently falling back
